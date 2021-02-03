@@ -129,7 +129,7 @@ class Museca1Plus(
         game_config = self.get_game_config()
         if game_config.get_bool('force_unlock_songs'):
             ids = set()
-            songs = self.data.local.music.get_all_songs(self.game, self.version)
+            songs = self.data.local.music.get_all_songs(self.game, self.music_version)
             for song in songs:
                 if song.data.get_int('limited') in (self.GAME_LIMITED_LOCKED, self.GAME_LIMITED_UNLOCKABLE):
                     ids.add((song.id, song.chart))
@@ -151,23 +151,35 @@ class Museca1Plus(
             evt.add_child(Node.u32('event_id', eid))
 
         if not game_config.get_bool('disable_matching'):
-            enable_event(143)  # Matching enabled (Has no effect on final data - matching is always enabled)
+            enable_event(143)  # Matching enabled
 
-        enable_event(1)   # Extended pedal options (No effect on Museca 1+1/2)
-        enable_event(56)  # Generator grafica icon <print 1 in musicdb>
-        enable_event(83)  # Light start
-        enable_event(86)  # Generator grafica icon <print 2 in musicdb>
-        enable_event(98)  # Caption 2 notice (grs_grafica_caption_2.png)
-        enable_event(105) # Makes the "Number of Layers" option visible in game settings
-        enable_event(130) # Curator rank
-        enable_event(141) # Coconatsu & Mukipara grafica effects
-        enable_event(195) # Fictional curator
+        # These events are meant specifically for Museca Plus
+        museca_plus_events = [
+            140,  # Agetta Moratta (vmlink_phase 3 in musicdb)
+            211,  # News 1
+        ]
+        event_ids = [
+            1,    # Extended pedal options
+            56,   # Generator grafica icon <print 1 in musicdb>
+            83,   # Paseli Light Start
+            86,   # Generator grafica icon <print 2 in musicdb>
+            98,   # Caption 2 notice (grs_grafica_caption_2.png)
+            105,  # Makes the "Number of Layers" option visible in game settings
+            130,  # Curator Rank
+            141,  # Coconatsu & Mukipara grafica effects
+            145,  # MUKIPARA UNLOCKS
+            146,  # MUKIPARA UNLOCKS
+            147,  # MUKIPARA UNLOCKS
+            148,  # MUKIPARA UNLOCKS
+            149,  # MUKIPARA UNLOCKS
+            195,  # Fictional Curator (foot pedal options)
+        ]
 
-        enable_event(98)  # Mission mode (No effect on 1+1/2)
-        for evtid in [145, 146, 147, 148, 149]:
-            enable_event(evtid)  # Mukipara grafica unlocks
-        
-        
+        for evtid in event_ids:
+            enable_event(evtid)
+        if self.omnimix:
+            for evtid in museca_plus_events:
+                enable_event(evtid)
         # Makes special missions available on grafica that have them.
         extend = Node.void('extend')
         game.add_child(extend)
@@ -185,51 +197,6 @@ class Museca1Plus(
         info.add_child(Node.string('param_str_3', 'available_ex: 1'))
         info.add_child(Node.string('param_str_4', 'available_ex: 1'))
         info.add_child(Node.string('param_str_5', 'available_ex: 1'))
-        
-        
-        # 56,   # Generator grafica icon <print 1 in musicdb>
-        # 83,   # Paseli Light Start
-        # 86,   # Generator grafica icon <print 2 in musicdb>
-        # 98,   # Caption 2 notice (grs_grafica_caption_2.png)
-        # 100,  # DJ YOSHITAKA EXHIBITION 2016
-        # 103,  # HATSUNE MIKU EXHIBITION 2016 - PART 1
-        # 104,  # HATSUNE MIKU EXHIBITION 2016 - PART 2
-        # 105,  # Makes the "Number of Layers" option visible in game settings
-        # 106,  # HATSUNE MIKU EXHIBITION 2016 - PART 3
-        # 117,  # NEW GENERATION METEOR DIFFUSE FESTA 2016 / RYUSEI FESTA TRIGGER
-        # 129,  # COCONATSU EXHIBITION 2016
-        # 130,  # Curator Rank
-        # 97,   # Agetta Moratta (vmlink_phase 1 in musicdb)
-        # 114,  # Agetta Moratta (vmlink_phase 2 in musicdb)
-        # 140,  # Agetta Moratta (vmlink_phase 3 in musicdb)
-        # 141,  # Coconatsu & Mukipara grafica effects
-        # 143,  # Matching
-        # 144,  # BEMANI ARCHAEOLOGICAL EXHIBITION
-        # 163,  # TUTORIAL SNOW
-        # 169,  # SHIORI FUJISAKI EXHIBITION 2017 - PART 1
-        # 174,  # SHIORI FUJISAKI EXHIBITION 2017 - PART 2
-        # 182,  # Mute illil's voice?
-        # 192,  # GREAT REPRINT FESTIVAL: MIKU + DJ YOSHITAKA
-        # 194,  # Continue
-        # 195,  # Fictional Curator (foot pedal options)
-        # 211,  #News 1
-        # 212,  #News 2
-        # 213,  #News 3
-        # 214,  #News 4
-        # 217,  #News 5
-        # 218,  #News 6
-        # 219,  #News 7
-        # 220,  #News 8
-        # 221,  # GRAFICA PRESENTATION CAMPAIGN “THE PRIMITIVE LIFE EXHIBITION”
-        # 222,  # GRAFICA PRESENTATION CAMPAIGN "NOISE"
-        # 223,  # GRAFICA PRESENTATION CAMPAIGN "PATISSERIE ROUGE"
-        # 224,  # GRAFICA PRESENTATION CAMPAIGN "GUNSLINGER"
-        # 145,  # MUKIPARA UNLOCKS
-        # 146,  # MUKIPARA UNLOCKS
-        # 147,  # MUKIPARA UNLOCKS
-        # 148,  # MUKIPARA UNLOCKS
-        # 149,  # MUKIPARA UNLOCKS
-
         return game
 
     def handle_game_3_lounge_request(self, request: Node) -> Node:
@@ -277,7 +244,7 @@ class Museca1Plus(
             userid = None
 
         if userid is not None:
-            scores = self.data.remote.music.get_scores(self.game, self.version, userid)
+            scores = self.data.remote.music.get_scores(self.game, self.music_version, userid)
         else:
             scores = []
 
@@ -377,7 +344,7 @@ class Museca1Plus(
 
         if game_config.get_bool('force_unlock_songs'):
             ids: Dict[int, int] = {}
-            songs = self.data.local.music.get_all_songs(self.game, self.version)
+            songs = self.data.local.music.get_all_songs(self.game, self.music_version)
             for song in songs:
                 if song.id not in ids:
                     ids[song.id] = 0

@@ -32,10 +32,41 @@ class Node:
     NODE_TYPE_IP4 = 12
     NODE_TYPE_TIME = 13
     NODE_TYPE_FLOAT = 14
+    NODE_TYPE_DOUBLE = 15
+
+    NODE_TYPE_2S8 = 16
+    NODE_TYPE_2U8 = 17
+    NODE_TYPE_2S16 = 18
     NODE_TYPE_2U16 = 19
+    NODE_TYPE_2S32 = 20
+    NODE_TYPE_2U32 = 21
+    NODE_TYPE_2S64 = 22
+    NODE_TYPE_2U64 = 23
+    NODE_TYPE_2FLOAT = 24
+    NODE_TYPE_2DOUBLE = 25
+
+    NODE_TYPE_3S8 = 26
+    NODE_TYPE_3U8 = 27
+    NODE_TYPE_3S16 = 28
+    NODE_TYPE_3U16 = 29
     NODE_TYPE_3S32 = 30
+    NODE_TYPE_3U32 = 31
+    NODE_TYPE_3S64 = 32
+    NODE_TYPE_3U64 = 33
+    NODE_TYPE_3FLOAT = 34
+    NODE_TYPE_3DOUBLE = 35
+
+    NODE_TYPE_4S8 = 36
     NODE_TYPE_4U8 = 37
+    NODE_TYPE_4S16 = 38
     NODE_TYPE_4U16 = 39
+    NODE_TYPE_4S32 = 40
+    NODE_TYPE_4U32 = 41
+    NODE_TYPE_4S64 = 42
+    NODE_TYPE_4U64 = 43
+    NODE_TYPE_4FLOAT = 44
+    NODE_TYPE_4DOUBLE = 45
+
     NODE_TYPE_BOOL = 52
 
     NODE_TYPES = {
@@ -136,6 +167,13 @@ class Node:
             'len': 4,
             'int': False,
             'composite': False,
+        },
+        NODE_TYPE_2S16: {
+            'name': '2s16',
+            'enc': 'hh',
+            'len': 4,
+            'int': True,
+            'composite': True,
         },
         NODE_TYPE_2U16: {
             'name': '2u16',
@@ -437,7 +475,7 @@ class Node:
             self.__translated_type = Node.NODE_TYPES[type & (~Node.ARRAY_BIT)]
             self.__type = type
         except KeyError:
-            raise NodeException(f'Unknown node type {type}')
+            raise NodeException(f'Unknown node type {type} on node name {self.__name}')
 
     @property
     def type(self) -> int:
